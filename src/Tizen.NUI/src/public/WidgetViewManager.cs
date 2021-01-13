@@ -55,6 +55,18 @@ namespace Tizen.NUI
             return ret;
         }
 
+        /// <summary>
+        /// Remove a widget view object.
+        /// </summary>
+        /// <param name="widgetView">widgetView to remove</param>
+        /// <returns> True on success, false otherwise.</returns>
+        public bool RemoveWidget(WidgetView widgetView)
+        {
+            bool ret = Interop.WidgetViewManager.RemoveWidget(SwigCPtr, WidgetView.getCPtr(widgetView));
+            if (NDalicPINVOKE.SWIGPendingException.Pending) throw NDalicPINVOKE.SWIGPendingException.Retrieve();
+            return ret;
+        }
+
         internal static global::System.Runtime.InteropServices.HandleRef getCPtr(WidgetViewManager obj)
         {
             return (obj == null) ? new global::System.Runtime.InteropServices.HandleRef(null, global::System.IntPtr.Zero) : obj.SwigCPtr;
