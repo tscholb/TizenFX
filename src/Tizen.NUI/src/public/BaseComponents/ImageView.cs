@@ -890,8 +890,12 @@ namespace Tizen.NUI.BaseComponents
             set
             {
                 VisualFittingModeType ret = CovertFittingModetoVisualFittingMode(value);
-                _fittingMode = ret;
                 PropertyValue setValue = new PropertyValue((int)ret);
+                if(_fittingMode != ret)
+                {
+                    _fittingMode = ret;
+                    UpdateImage(Visual.Property.VisualFittingMode, setValue);
+                }
                 UpdateImage(Visual.Property.VisualFittingMode, setValue);
                 setValue?.Dispose();
             }
