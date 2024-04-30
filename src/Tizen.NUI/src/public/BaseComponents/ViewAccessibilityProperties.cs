@@ -36,25 +36,11 @@ namespace Tizen.NUI.BaseComponents
         {
             get
             {
-                if (NUIApplication.IsUsingXaml)
-                {
-                    return (string)GetValue(AccessibilityNameProperty);
-                }
-                else
-                {
-                    return (string)GetInternalAccessibilityNameProperty(this);
-                }
+                return (string)GetValue(AccessibilityNameProperty);
             }
             set
             {
-                if (NUIApplication.IsUsingXaml)
-                {
-                    SetValue(AccessibilityNameProperty, value);
-                }
-                else
-                {
-                    SetInternalAccessibilityNameProperty(this, null, value);
-                }
+                SetValue(AccessibilityNameProperty, value);
                 NotifyPropertyChanged();
             }
         }
@@ -67,25 +53,11 @@ namespace Tizen.NUI.BaseComponents
         {
             get
             {
-                if (NUIApplication.IsUsingXaml)
-                {
-                    return (string)GetValue(AccessibilityDescriptionProperty);
-                }
-                else
-                {
-                    return (string)GetInternalAccessibilityDescriptionProperty(this);
-                }
+                return (string)GetValue(AccessibilityDescriptionProperty);
             }
             set
             {
-                if (NUIApplication.IsUsingXaml)
-                {
-                    SetValue(AccessibilityDescriptionProperty, value);
-                }
-                else
-                {
-                    SetInternalAccessibilityDescriptionProperty(this, null, value);
-                }
+                SetValue(AccessibilityDescriptionProperty, value);
                 NotifyPropertyChanged();
             }
         }
@@ -98,25 +70,11 @@ namespace Tizen.NUI.BaseComponents
         {
             get
             {
-                if (NUIApplication.IsUsingXaml)
-                {
-                    return (string)GetValue(AccessibilityTranslationDomainProperty);
-                }
-                else
-                {
-                    return (string)GetInternalAccessibilityTranslationDomainProperty(this);
-                }
+                return (string)GetValue(AccessibilityTranslationDomainProperty);
             }
             set
             {
-                if (NUIApplication.IsUsingXaml)
-                {
-                    SetValue(AccessibilityTranslationDomainProperty, value);
-                }
-                else
-                {
-                    SetInternalAccessibilityTranslationDomainProperty(this, null, value);
-                }
+                SetValue(AccessibilityTranslationDomainProperty, value);
                 NotifyPropertyChanged();
             }
         }
@@ -129,25 +87,11 @@ namespace Tizen.NUI.BaseComponents
         {
             get
             {
-                if (NUIApplication.IsUsingXaml)
-                {
-                    return (Role)GetValue(AccessibilityRoleProperty);
-                }
-                else
-                {
-                    return (Role)GetInternalAccessibilityRoleProperty(this);
-                }
+                return (Role)GetValue(AccessibilityRoleProperty);
             }
             set
             {
-                if (NUIApplication.IsUsingXaml)
-                {
-                    SetValue(AccessibilityRoleProperty, value);
-                }
-                else
-                {
-                    SetInternalAccessibilityRoleProperty(this, null, value);
-                }
+                SetValue(AccessibilityRoleProperty, value);
                 NotifyPropertyChanged();
             }
         }
@@ -164,25 +108,11 @@ namespace Tizen.NUI.BaseComponents
         {
             get
             {
-                if (NUIApplication.IsUsingXaml)
-                {
-                    return (bool)GetValue(AccessibilityHighlightableProperty);
-                }
-                else
-                {
-                    return (bool)GetInternalAccessibilityHighlightableProperty(this);
-                }
+                return (bool)GetValue(AccessibilityHighlightableProperty);
             }
             set
             {
-                if (NUIApplication.IsUsingXaml)
-                {
-                    SetValue(AccessibilityHighlightableProperty, value);
-                }
-                else
-                {
-                    SetInternalAccessibilityHighlightableProperty(this, null, value);
-                }
+                SetValue(AccessibilityHighlightableProperty, value);
                 NotifyPropertyChanged();
             }
         }
@@ -198,25 +128,11 @@ namespace Tizen.NUI.BaseComponents
         {
             get
             {
-                if (NUIApplication.IsUsingXaml)
-                {
-                    return (bool)GetValue(AccessibilityHiddenProperty);
-                }
-                else
-                {
-                    return (bool)GetInternalAccessibilityHiddenProperty(this);
-                }
+                return (bool)GetValue(AccessibilityHiddenProperty);
             }
             set
             {
-                if (NUIApplication.IsUsingXaml)
-                {
-                    SetValue(AccessibilityHiddenProperty, value);
-                }
-                else
-                {
-                    SetInternalAccessibilityHiddenProperty(this, null, value);
-                }
+                SetValue(AccessibilityHiddenProperty, value);
                 NotifyPropertyChanged();
             }
         }
@@ -229,25 +145,11 @@ namespace Tizen.NUI.BaseComponents
         {
             get
             {
-                if (NUIApplication.IsUsingXaml)
-                {
-                    return GetValue(AutomationIdProperty) as string;
-                }
-                else
-                {
-                    return GetInternalAutomationIdProperty(this) as string;
-                }
+                return GetValue(AutomationIdProperty) as string;
             }
             set
             {
-                if (NUIApplication.IsUsingXaml)
-                {
-                    SetValue(AutomationIdProperty, value);
-                }
-                else
-                {
-                    SetInternalAutomationIdProperty(this, null, value);
-                }
+                SetValue(AutomationIdProperty, value);
                 NotifyPropertyChanged();
             }
         }
