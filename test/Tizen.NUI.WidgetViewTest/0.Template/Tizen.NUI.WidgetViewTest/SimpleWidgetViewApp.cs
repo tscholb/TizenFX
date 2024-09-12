@@ -54,21 +54,19 @@ namespace WidgetApplicationTemplate
 
             widgetWidth = 500;
             widgetHeight = 500;
-            mWidgetView = WidgetViewManager.Instance.AddWidget("class1@Tizen.NUI.WidgetTest", encodedBundle, widgetWidth, widgetHeight, 0.0f);
+            mWidgetView = WidgetViewManager.Instance.AddWidget("csharp_widget@org.tizen.example.NUIComponentApplication", "", widgetWidth, widgetHeight, 0.0f);
             mWidgetView.Position = new Position(100,100);
             window.GetDefaultLayer().Add(mWidgetView);
 
-            mWidgetView2 = WidgetViewManager.Instance.AddWidget("class2@Tizen.NUI.WidgetTest", encodedBundle, widgetWidth, widgetHeight, 0.0f);
-            mWidgetView2.Position = new Position(100, widgetHeight + 110);
-            window.GetDefaultLayer().Add(mWidgetView2);
+            // mWidgetView2 = WidgetViewManager.Instance.AddWidget("class2@Tizen.NUI.WidgetTest", encodedBundle, widgetWidth, widgetHeight, 0.0f);
+            // mWidgetView2.Position = new Position(100, widgetHeight + 110);
+            // window.GetDefaultLayer().Add(mWidgetView2);
 
-            mTimer = new Timer(4000);
-            mTimer.Tick += onTick;
-            mTimer.Start();
 
             created = true;
         }
 
+/*
         private bool onTick(object o, Timer.TickEventArgs e)
         {
             Window window = GetDefaultWindow();
@@ -95,6 +93,7 @@ namespace WidgetApplicationTemplate
             }
             return true;
         }
+        */
 
         public void OnKeyEvent(object sender, Window.KeyEventArgs e)
         {

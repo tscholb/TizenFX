@@ -13,6 +13,8 @@ namespace NUIComponentApplicationSample
         public static MyFrameComponent myFrame1 = null;
         public static MyFrameComponent2 myFrame2 = null;
 
+        public static MyWidgetComponent myWidget = null;
+
         public Program(IDictionary<Type, string> typeInfo) : base(typeInfo)
         {
         }
@@ -138,6 +140,64 @@ namespace NUIComponentApplicationSample
             }
         }
 
+        public class MyWidgetComponent : NUIWidgetComponent
+        {
+            private TextLabel text;
+            private Animation animation;
+
+            public override bool OnCreate(int width, int height)
+            {
+                myWidget = this;
+                Tizen.Log.Error("MYLOG", "MyWidgetComponent OnCreate .. START ,size:" + width +"x"+height);
+                Window.BackgroundColor = Color.Red;
+                Window.WindowSize = new Size(width, height);
+                text = new TextLabel("Widget Component");
+                text.HorizontalAlignment = HorizontalAlignment.Center;
+                text.VerticalAlignment = VerticalAlignment.Center;
+                text.TextColor = Color.Black;
+                text.PointSize = 20.0f;
+                text.HeightResizePolicy = ResizePolicyType.FillToParent;
+                text.WidthResizePolicy = ResizePolicyType.FillToParent;
+                Window.Add(text);
+                Tizen.Log.Error("MYLOG", "MyWidgetComponent OnCreate.. DONE");
+
+                // animation = new Animation(5000);
+                // animation.AnimateTo(text, "Orientation", new Rotation(new Radian(new Degree(180.0f)), PositionAxis.X), 0, 500);
+                // animation.AnimateTo(text, "Orientation", new Rotation(new Radian(new Degree(0.0f)), PositionAxis.X), 500, 1000);
+                // animation.Looping = true;
+                // animation.Play();
+                return true;
+            }
+
+            public override void OnDestroy(bool permanent)
+            {
+                Tizen.Log.Error("MYLOG", "MyWidgetComponent OnDestroy");
+                text.Dispose();
+                animation.Dispose();
+            }
+
+            public override void OnPause()
+            {
+                Tizen.Log.Error("MYLOG", "MyWidgetComponent OnPause");
+            }
+
+            public override void OnResume()
+            {
+                Tizen.Log.Error("MYLOG", "MyWidgetComponent OnResume");
+            }
+
+            public override void OnStart(bool restarted)
+            {
+                Tizen.Log.Error("MYLOG", "MyWidgetComponent OnStart");
+            }
+
+            public override void OnStop()
+            {
+                Tizen.Log.Error("MYLOG", "MyWidgetComponent OnStop");
+            }
+        }
+
+
         static private Type LoadFrameComponentDll()
         {
             string path = @"/opt/usr/FrameComponentDll.dll";
@@ -157,17 +217,18 @@ namespace NUIComponentApplicationSample
 
         static void Main(string[] args)
         {
-
+            Tizen.Log.Error("MYLOG", "Start Main!! \n");
             Dictionary<Type, string> dict = new Dictionary<Type, string>();
-            dict.Add(typeof(MyFrameComponent), "csharp_frame");
-            dict.Add(typeof(MyFrameComponent2), "csharp_frame2");
+            //dict.Add(typeof(MyFrameComponent), "csharp_frame");
+            //dict.Add(typeof(MyFrameComponent2), "csharp_frame2");
+            dict.Add(typeof(MyWidgetComponent), "csharp_widget");
 
-            Type type = LoadFrameComponentDll();
-            if (type != null)
-            {
-                Tizen.Log.Error("MYLOG", "Add type : " + type);
-                dict.Add(type, "csharp_frame3");
-            }
+            // Type type = LoadFrameComponentDll();
+            // if (type != null)
+            // {
+            //     Tizen.Log.Error("MYLOG", "Add type : " + type);
+            //     dict.Add(type, "csharp_frame3");
+            // }
 
 
             var app = new Program(dict);

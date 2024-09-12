@@ -24,6 +24,13 @@
       <label xml:lang="en-us">FrameComponent2</label>
       <label xml:lang="ko-kr">FrameComponent2[KOR]</label>
     </frame-component>
+    <widget-component id="csharp_widget" launch_mode="caller" main="false" icon-display="false" taskmanage="true" update-period="0">
+      <icon>org.tizen.sample.png</icon>
+      <label>WidgetComponent</label>
+      <label xml:lang="en-us">WidgetComponent</label>
+      <label xml:lang="ko-kr">WidgetComponent[KOR]</label>
+      <support-size preview="org.tizen.sample.png">4x4</support-size>
+    </widget-component>
    <frame-component id="csharp_frame3" launch_mode="caller" main="false" icon-display="false" taskmanage="true">
       <icon>org.tizen.sample.png</icon>
       <label>FrameComponent3</label>

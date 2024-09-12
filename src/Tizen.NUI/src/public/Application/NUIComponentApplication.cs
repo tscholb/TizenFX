@@ -72,6 +72,10 @@ namespace Tizen.NUI
             {
                 componentFactories.Add(compType, new ServiceComponentStateManager(compType, compId, null));
             }
+            else if (typeof(WidgetComponent).IsAssignableFrom(compType))
+            {
+                componentFactories.Add(compType, new WidgetComponentStateManager(compType, compId, null));
+            }
             else
             {
                 throw new ArgumentException("compType must be sub type of FrameComponent or ServiceComponent", nameof(compType));
