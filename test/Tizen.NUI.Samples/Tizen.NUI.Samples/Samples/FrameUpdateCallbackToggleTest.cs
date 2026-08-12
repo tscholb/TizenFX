@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using Tizen.NUI;
 using Tizen.NUI.BaseComponents;
 
@@ -6,239 +7,342 @@ namespace Tizen.NUI.Samples
 {
     public class FrameUpdateCallbackToggleTest : IExample
     {
-        private Window window;
-        private View imageView;
-        private TextLabel visibleLabel;
-        private TextLabel ignoredLabel;
-        private IgnoredToggler ignoredToggler;
+        private const int ItemCount = 9;
+        private const float ViewportWidth = 640.0f;
+        private const float ViewportHeight = 170.0f;
+        private const float ItemSize = 90.0f;
+        private const float ItemGap = 28.0f;
+        private const float ItemStartX = 22.0f;
+        private const float ItemY = 40.0f;
+        private const float MoveStep = 35.0f;
 
-        private PropertyNotification lessThanNotification;
-        private PropertyNotification greaterThanNotification;
-        private TextLabel lessThanLabel;
-        private TextLabel greaterThanLabel;
-
-        // FrameUpdateCallback to toggle the ignored state of an actor
-        private class IgnoredToggler : FrameUpdateCallbackInterface
+        private readonly Color[] itemColors =
         {
-            private const float IntervalSeconds = 2.0f;
-            private float elapsedTime;
-            private bool currentlyIgnored;
-            private uint imageViewId;
-            private uint visibleLabelId;
-            private uint ignoredLabelId;
+            new Color(0.90f, 0.12f, 0.10f, 1.0f),
+            new Color(0.12f, 0.42f, 0.86f, 1.0f),
+            new Color(0.12f, 0.62f, 0.35f, 1.0f),
+            new Color(0.94f, 0.64f, 0.12f, 1.0f),
+            new Color(0.55f, 0.25f, 0.78f, 1.0f),
+            new Color(0.05f, 0.62f, 0.70f, 1.0f),
+            new Color(0.86f, 0.25f, 0.42f, 1.0f),
+            new Color(0.38f, 0.46f, 0.12f, 1.0f),
+            new Color(0.30f, 0.30f, 0.34f, 1.0f),
+        };
 
-            public IgnoredToggler(uint imageViewId, uint visibleLabelId, uint ignoredLabelId)
-                : base(1u) // Use version 1 of the callback to return a boolean
-            {
-                this.imageViewId = imageViewId;
-                this.visibleLabelId = visibleLabelId;
-                this.ignoredLabelId = ignoredLabelId;
-                this.elapsedTime = 0.0f;
-                this.currentlyIgnored = false;
-            }
-
-            public override bool OnUpdate(FrameUpdateCallbackInterface obj, float elapsedSeconds)
-            {
-                elapsedTime += elapsedSeconds;
-
-                if (elapsedTime >= IntervalSeconds)
-                {
-                    currentlyIgnored = !currentlyIgnored;
-                    SetIgnored(imageViewId, currentlyIgnored);
-                    // Control label visibility using SetIgnored to ensure thread safety
-                    SetIgnored(visibleLabelId, currentlyIgnored); // Hide "Visible" label when main actor is ignored
-                    SetIgnored(ignoredLabelId, !currentlyIgnored); // Show "Ignored" label when main actor is ignored
-                    elapsedTime = 0.0f; // Reset timer
-                }
-
-                return true; // Keep the callback alive
-            }
-        }
+        private Window window;
+        private View viewport;
+        private View content;
+        private TextLabel statusLabel;
+        private TextLabel helpLabel;
+        private View leftBoundary;
+        private View rightBoundary;
+        private View[] items;
+        private TextLabel[] itemLabels;
+        private float scrollOffset;
+        private bool appIgnoredCulling;
 
         public void Activate()
         {
-            Window window = NUIApplication.GetDefaultWindow();
+            window = NUIApplication.GetDefaultWindow();
             window.BackgroundColor = Color.White;
             window.KeyEvent += OnKeyEvent;
 
-            // Create an ImageView to visually demonstrate the ignored state
-            imageView = new View()
-            {
-                Size = new Size(200, 200),
-                ParentOrigin = ParentOrigin.Center,
-                PivotPoint = PivotPoint.Center,
-                PositionUsesPivotPoint = true,
-                BackgroundColor = Color.Red,
-                Name = "demoImageView"
-            };
-            window.GetDefaultLayer().Add(imageView);
-
-            // Create TextLabels to display the ignored state
-            // "Visible" Label
-            visibleLabel = new TextLabel("Visible")
-            {
-                ParentOrigin = ParentOrigin.Center,
-                PivotPoint = PivotPoint.Center,
-                PositionUsesPivotPoint = true,
-                TextColor = Color.Black,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                PointSize = 12
-            };
-            window.GetDefaultLayer().Add(visibleLabel); // Add to window directly
-
-            // "Ignored" Label
-            ignoredLabel = new TextLabel("Ignored")
-            {
-                ParentOrigin = ParentOrigin.Center,
-                PivotPoint = PivotPoint.Center,
-                PositionUsesPivotPoint = true,
-                TextColor = Color.Red, // Use red to distinguish
-                HorizontalAlignment = HorizontalAlignment.Center,
-                PointSize = 12
-            };
-            window.GetDefaultLayer().Add(ignoredLabel); // Add to window directly
-
-            // Set initial visibility for labels using SetIgnored for consistency
-            // Initially, ignoredLabel should be in an 'ignored' state so it's not visible.
-            // We call SetIgnored directly here as we are on the main thread.
-            // Note: SetIgnored on an actor from the main thread sends a message to the update thread.
-            // Use the Ignored property directly on the View if available.
-            ignoredLabel.Ignored = true; // Initially ignored
-
-            // Get the actor IDs for the FrameUpdateCallback
-            uint imageViewId = imageView.ID;
-            uint visibleLabelId = visibleLabel.ID;
-            uint ignoredLabelId = ignoredLabel.ID;
-
-            // Create and add the frame callback to toggle the ignored state every 2 seconds
-            ignoredToggler = new IgnoredToggler(imageViewId, visibleLabelId, ignoredLabelId);
-            // Pass null as the root view, as the callback doesn't need to be tied to a specific view's lifecycle
-            // and Layer cannot be directly cast to View for this method.
-            window.AddFrameUpdateCallback(ignoredToggler, null);
-
-            // Create TextLabels to display the property notification
-            lessThanNotification = imageView.AddPropertyNotification("Ignored", PropertyCondition.LessThan(0.5f));
-            lessThanNotification.Notified += (o, e) =>
-            {
-                if (lessThanLabel != null)
-                {
-                    lessThanLabel.Ignored = false;
-                }
-                if (greaterThanLabel != null)
-                {
-                    greaterThanLabel.Ignored = true;
-                }
-            };
-            lessThanLabel = new TextLabel("1 -> 0 Notified")
-            {
-                ParentOrigin = ParentOrigin.TopLeft,
-                PivotPoint = PivotPoint.TopLeft,
-                PositionUsesPivotPoint = true,
-                TextColor = Color.Black,
-                HorizontalAlignment = HorizontalAlignment.Begin,
-                PointSize = 12
-            };
-            window.GetDefaultLayer().Add(lessThanLabel); // Add to window directly
-            lessThanLabel.Ignored = true;
-
-            greaterThanNotification = imageView.AddPropertyNotification("Ignored", PropertyCondition.GreaterThan(0.5f));
-            greaterThanNotification.Notified += (o, e) =>
-            {
-                if (lessThanLabel != null)
-                {
-                    lessThanLabel.Ignored = true;
-                }
-                if (greaterThanLabel != null)
-                {
-                    greaterThanLabel.Ignored = false;
-                }
-            };
-            greaterThanLabel = new TextLabel("0 -> 1 Notified")
-            {
-                ParentOrigin = ParentOrigin.TopRight,
-                PivotPoint = PivotPoint.TopRight,
-                PositionUsesPivotPoint = true,
-                TextColor = Color.Black,
-                HorizontalAlignment = HorizontalAlignment.End,
-                PointSize = 12
-            };
-            window.GetDefaultLayer().Add(greaterThanLabel); // Add to window directly
-            greaterThanLabel.Ignored = true;
-
-            
+            CreateViewport();
+            CreateStatusLabels();
+            CreateItems();
+            UpdateScene();
         }
 
         public void Deactivate()
         {
-            if (ignoredToggler != null)
-            {
-                if (window != null)
-                {
-                    window.RemoveFrameUpdateCallback(ignoredToggler);
-                }
-                ignoredToggler = null;
-            }
-
-            if (ignoredLabel != null)
-            {
-                ignoredLabel.Unparent();
-                ignoredLabel.Dispose();
-                ignoredLabel = null;
-            }
-
-            if (visibleLabel != null)
-            {
-                visibleLabel.Unparent();
-                visibleLabel.Dispose();
-                visibleLabel = null;
-            }
-
-            if (lessThanLabel != null)
-            {
-                lessThanLabel.Unparent();
-                lessThanLabel.Dispose();
-                lessThanLabel = null;
-            }
-
-            if (greaterThanLabel != null)
-            {
-                greaterThanLabel.Unparent();
-                greaterThanLabel.Dispose();
-                greaterThanLabel = null;
-            }
-
-            if (imageView != null)
-            {
-                if (lessThanNotification != null)
-                {
-                    imageView.RemovePropertyNotification(lessThanNotification);
-                    lessThanNotification.Dispose();
-                }
-                if (greaterThanNotification != null)
-                {
-                    imageView.RemovePropertyNotification(greaterThanNotification);
-                    greaterThanNotification.Dispose();
-                }
-                imageView.Unparent();
-                imageView.Dispose();
-                imageView = null;
-            }
-
             if (window != null)
             {
                 window.KeyEvent -= OnKeyEvent;
-                window = null;
+            }
+
+            DisposeView(ref statusLabel);
+            DisposeView(ref helpLabel);
+            DisposeView(ref leftBoundary);
+            DisposeView(ref rightBoundary);
+
+            if (items != null)
+            {
+                for (int i = 0; i < items.Length; i++)
+                {
+                    if (items[i] != null)
+                    {
+                        items[i].Ignored = false;
+                        items[i].Unparent();
+                        items[i].Dispose();
+                        items[i] = null;
+                    }
+                }
+                items = null;
+            }
+
+            if (content != null)
+            {
+                content.Unparent();
+                content.Dispose();
+                content = null;
+            }
+
+            if (viewport != null)
+            {
+                viewport.Unparent();
+                viewport.Dispose();
+                viewport = null;
+            }
+
+            itemLabels = null;
+            window = null;
+        }
+
+        private void CreateViewport()
+        {
+            viewport = new View()
+            {
+                Name = "ignored-culling-viewport",
+                Size = new Size(ViewportWidth, ViewportHeight),
+                ParentOrigin = ParentOrigin.Center,
+                PivotPoint = PivotPoint.Center,
+                PositionUsesPivotPoint = true,
+                Position = new Position(0.0f, -30.0f, 0.0f),
+                BackgroundColor = new Color(0.93f, 0.95f, 0.96f, 1.0f),
+                ClippingMode = ClippingModeType.ClipToBoundingBox,
+            };
+            window.GetDefaultLayer().Add(viewport);
+
+            float windowWidth = window.Size.Width;
+            float windowHeight = window.Size.Height;
+            float boundaryY = (windowHeight - ViewportHeight) * 0.5f - 30.0f;
+            float leftX = (windowWidth - ViewportWidth) * 0.5f;
+            float rightX = leftX + ViewportWidth - 3.0f;
+
+            leftBoundary = CreateBoundary(leftX, boundaryY);
+            rightBoundary = CreateBoundary(rightX, boundaryY);
+
+            content = new View()
+            {
+                Name = "ignored-culling-content",
+                Size = new Size(ItemStartX + ItemCount * (ItemSize + ItemGap), ViewportHeight),
+                ParentOrigin = ParentOrigin.TopLeft,
+                PivotPoint = PivotPoint.TopLeft,
+                PositionUsesPivotPoint = true,
+                Position = new Position(0.0f, 0.0f, 0.0f),
+            };
+            viewport.Add(content);
+        }
+
+        private View CreateBoundary(float x, float y)
+        {
+            View boundary = new View()
+            {
+                Size = new Size(3.0f, ViewportHeight),
+                ParentOrigin = ParentOrigin.TopLeft,
+                PivotPoint = PivotPoint.TopLeft,
+                PositionUsesPivotPoint = true,
+                Position = new Position(x, y, 0.0f),
+                BackgroundColor = Color.Black,
+            };
+            window.GetDefaultLayer().Add(boundary);
+            return boundary;
+        }
+
+        private void CreateStatusLabels()
+        {
+            helpLabel = new TextLabel("Left/Right: move  |  0: reset  |  I: toggle app Ignored culling  |  C: clear Ignored")
+            {
+                Size = new Size(window.Size.Width, 42.0f),
+                ParentOrigin = ParentOrigin.TopLeft,
+                PivotPoint = PivotPoint.TopLeft,
+                PositionUsesPivotPoint = true,
+                Position = new Position(20.0f, 20.0f, 0.0f),
+                TextColor = Color.Black,
+                HorizontalAlignment = HorizontalAlignment.Begin,
+                VerticalAlignment = VerticalAlignment.Center,
+                PointSize = 8,
+            };
+            window.GetDefaultLayer().Add(helpLabel);
+
+            statusLabel = new TextLabel()
+            {
+                Size = new Size(window.Size.Width - 40.0f, 190.0f),
+                ParentOrigin = ParentOrigin.BottomLeft,
+                PivotPoint = PivotPoint.BottomLeft,
+                PositionUsesPivotPoint = true,
+                Position = new Position(20.0f, -20.0f, 0.0f),
+                TextColor = Color.Black,
+                HorizontalAlignment = HorizontalAlignment.Begin,
+                VerticalAlignment = VerticalAlignment.Bottom,
+                PointSize = 7,
+            };
+            window.GetDefaultLayer().Add(statusLabel);
+        }
+
+        private void CreateItems()
+        {
+            items = new View[ItemCount];
+            itemLabels = new TextLabel[ItemCount];
+
+            for (int i = 0; i < ItemCount; i++)
+            {
+                View item = new View()
+                {
+                    Name = $"ignored-culling-item-{i}",
+                    Size = new Size(ItemSize, ItemSize),
+                    ParentOrigin = ParentOrigin.TopLeft,
+                    PivotPoint = PivotPoint.TopLeft,
+                    PositionUsesPivotPoint = true,
+                    Position = new Position(GetItemLocalX(i), ItemY, 0.0f),
+                    BackgroundColor = itemColors[i % itemColors.Length],
+                };
+                content.Add(item);
+                items[i] = item;
+
+                TextLabel label = new TextLabel(i.ToString())
+                {
+                    Size = new Size(ItemSize, ItemSize),
+                    ParentOrigin = ParentOrigin.Center,
+                    PivotPoint = PivotPoint.Center,
+                    PositionUsesPivotPoint = true,
+                    TextColor = Color.White,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    PointSize = 18,
+                };
+                item.Add(label);
+                itemLabels[i] = label;
             }
         }
 
         private void OnKeyEvent(object source, Window.KeyEventArgs e)
         {
-            if (e.Key.State == Key.StateType.Down)
+            if (e.Key.State != Key.StateType.Down)
             {
-                if (e.Key.KeyPressedName == "Escape" || e.Key.KeyPressedName == "Back")
+                return;
+            }
+
+            string keyName = e.Key.KeyPressedName;
+            if (keyName == "Escape" || keyName == "Back" || keyName == "XF86Back")
+            {
+                Deactivate();
+                return;
+            }
+
+            if (keyName == "Left")
+            {
+                scrollOffset += MoveStep;
+            }
+            else if (keyName == "Right")
+            {
+                scrollOffset -= MoveStep;
+            }
+            else if (keyName == "0")
+            {
+                scrollOffset = 0.0f;
+            }
+            else if (keyName == "I" || keyName == "i")
+            {
+                appIgnoredCulling = !appIgnoredCulling;
+            }
+            else if (keyName == "C" || keyName == "c")
+            {
+                appIgnoredCulling = false;
+                ClearIgnored();
+            }
+            else
+            {
+                return;
+            }
+
+            UpdateScene();
+        }
+
+        private void UpdateScene()
+        {
+            if (content == null)
+            {
+                return;
+            }
+
+            content.PositionX = scrollOffset;
+
+            for (int i = 0; i < items.Length; i++)
+            {
+                if (items[i] != null)
                 {
-                    Deactivate();
+                    items[i].Ignored = appIgnoredCulling && IsFullyOutsideViewport(i);
                 }
+            }
+
+            UpdateStatusText();
+        }
+
+        private void ClearIgnored()
+        {
+            if (items == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < items.Length; i++)
+            {
+                if (items[i] != null)
+                {
+                    items[i].Ignored = false;
+                }
+            }
+        }
+
+        private bool IsFullyOutsideViewport(int index)
+        {
+            float left = scrollOffset + GetItemLocalX(index);
+            float right = left + ItemSize;
+            return right <= 0.0f || left >= ViewportWidth;
+        }
+
+        private float GetItemLocalX(int index)
+        {
+            return ItemStartX + index * (ItemSize + ItemGap);
+        }
+
+        private void UpdateStatusText()
+        {
+            if (statusLabel == null || items == null)
+            {
+                return;
+            }
+
+            StringBuilder builder = new StringBuilder();
+            builder.AppendLine($"offset={scrollOffset:0}  appIgnoredCulling={(appIgnoredCulling ? "ON" : "OFF")}  viewport=[0,{ViewportWidth:0}]");
+            builder.AppendLine("idx expectedLeft expectedRight screenX ignored current world culled");
+
+            for (int i = 0; i < items.Length; i++)
+            {
+                float expectedLeft = scrollOffset + GetItemLocalX(i);
+                float expectedRight = expectedLeft + ItemSize;
+
+                if (expectedRight < -ItemSize || expectedLeft > ViewportWidth + ItemSize)
+                {
+                    continue;
+                }
+
+                View item = items[i];
+                Vector2 screenPosition = item.ScreenPosition;
+                builder.AppendLine($"{i,2} {expectedLeft,8:0} {expectedRight,9:0} {screenPosition.X,7:0} {item.Ignored,7} {item.CurrentIgnored,7} {item.WorldIgnored,5} {item.Culled,6}");
+            }
+
+            statusLabel.Text = builder.ToString();
+        }
+
+        private void DisposeView<T>(ref T view) where T : View
+        {
+            if (view != null)
+            {
+                view.Unparent();
+                view.Dispose();
+                view = null;
             }
         }
     }
